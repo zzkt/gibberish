@@ -9,6 +9,7 @@ Should eventually implement XMPP-Core and XMPP-IM to conform with RFCs 3920 and 
 
 ## example chat client
 
+<code>
 (require xmpp)
 
 (define (read-input prompt)
@@ -25,9 +26,12 @@ Should eventually implement XMPP-Core and XMPP-IM to conform with RFCs 3920 and 
                          (let ((msg (read-line (current-input-port))))
                            (send (message to msg))
                            (loop))))))
+</code>
 
 
-## possiby interesting extensions to implement. http://xmpp.org/extensions/
+## possiby interesting extensions to implement. 
+
+see http://xmpp.org/extensions/
 
 * XEP-0047: In-Band Bytestreams
 * XEP-0066: Out of Band Data
