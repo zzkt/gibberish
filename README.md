@@ -5,29 +5,28 @@ A basic module for IM using the Jabber/XMPP protocol with PLT Scheme.
 
 ## Protocol Support
 
-Should eventually implement XMPP-Core and XMPP-IM to conform with RFCs 3920 and 3921.  
-
+Should eventually implement XMPP-Core and XMPP-IM to conform with RFCs
+3920 and 3921. Progress toward supporting the full protocol is
+currently documented in the file 'xmpp.scm'
+ 
 ## example chat client
 
-<code>
-(require xmpp)
+    (require xmpp)
 
-(define (read-input prompt)
-  (display prompt)
-  (read-line (current-input-port)))
+    (define (read-input prompt)
+      (display prompt)
+      (read-line (current-input-port)))
 
-(define (chat)
-  (let ((jid  (read-input "jid: "))
-        (pass (read-input "password: "))
-        (to   (read-input "chat with: ")))
-    (with-xmpp-session jid pass 
-                       (set-xmpp-handler 'message print-message)
-                       (let loop ()                         
-                         (let ((msg (read-line (current-input-port))))
-                           (send (message to msg))
-                           (loop))))))
-</code>
-
+    (define (chat)
+      (let ((jid  (read-input "jid: "))
+            (pass (read-input "password: "))
+            (to   (read-input "chat with: ")))
+        (with-xmpp-session jid pass 
+                           (set-xmpp-handler 'message print-message)
+                           (let loop ()                         
+                             (let ((msg (read-line (current-input-port))))
+                               (send (message to msg))
+                               (loop))))))
 
 ## possiby interesting extensions to implement. 
 
@@ -45,3 +44,4 @@ see http://xmpp.org/extensions/
 * XEP-0224: Attention
 * XEP-0077: In-Band Registration
 
+    
