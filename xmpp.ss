@@ -53,6 +53,7 @@
 ;;;   - rfc 3921
 ;;;
 ;;;  bugs and/or improvements
+;;;   - PLaneT installable
 ;;;   - read-async & repsonse-handler
 ;;;   - ssax:xml->sxml or lazy:xml->sxml
 ;;;   - default handlers
@@ -284,7 +285,7 @@
          ,@body
          (close-output-port out)
          (close-input-port in))))
-  
+
   
   ) ;; end module
 

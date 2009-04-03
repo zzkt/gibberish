@@ -3,7 +3,22 @@
 
 @title{Gibberish}
 
-@title{Example chat client}
+Gibberish is a module for using the Jabber/XMPP protocol.
+
+@table-of-contents[]
+
+@section{Protocol Support}
+
+It should eventually implement XMPP-Core and XMPP-IM to conform with
+RFCs 3920 and 3921. Progress toward supporting the full protocol is
+currently documented in the file 'xmpp.scm'
+
+@section{Installation}
+
+(require (planet "xmpp.scm" (zzkt gibberish 1 0)))
+
+
+@section{Example Chat Client}
 
 @schemeblock[
              
@@ -13,7 +28,7 @@
                (display prompt)
                (read-line (current-input-port)))
              
-             (define (chat2)
+             (define (chat)
                (let ((jid  (read-input "jid: "))
                      (pass (read-input "password: "))
                      (to   (read-input "chat with: ")))
@@ -25,4 +40,4 @@
                                         (loop))))))
              ]
 
-
+and chat away...

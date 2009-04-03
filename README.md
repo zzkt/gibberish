@@ -8,8 +8,12 @@ A basic module for IM using the Jabber/XMPP protocol with PLT Scheme.
 Should eventually implement XMPP-Core and XMPP-IM to conform with RFCs
 3920 and 3921. Progress toward supporting the full protocol is
 currently documented in the file 'xmpp.scm'
+
+## Installation
+
+    (require (planet "xmpp.scm" (zzkt gibberish 1 0)))
  
-## example chat client
+## Example Chat Client
 
     (require xmpp)
 
@@ -27,6 +31,7 @@ currently documented in the file 'xmpp.scm'
                              (let ((msg (read-line (current-input-port))))
                                (send (message to msg))
                                (loop))))))
+
 
 ## possiby interesting extensions to implement. 
 
