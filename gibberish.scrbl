@@ -11,11 +11,12 @@ Gibberish is a module for using the Jabber/XMPP protocol.
 
 It should eventually implement XMPP-Core and XMPP-IM to conform with
 RFCs 3920 and 3921. Progress toward supporting the full protocol is
-currently documented in the file 'xmpp.scm'
+currently documented in the file 'xmpp.ss'
+
 
 @section{Installation}
 
-(require (planet "xmpp.scm" (zzkt gibberish 1 0)))
+(require (planet zzkt/gibberish:1:0/xmpp))
 
 
 @section{Example Chat Client}
