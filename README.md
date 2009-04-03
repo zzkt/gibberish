@@ -1,5 +1,5 @@
 
-# Gibberish
+# XMPP
 
 A basic module for IM using the Jabber/XMPP protocol with PLT Scheme.
 
@@ -11,7 +11,7 @@ currently documented in the file 'xmpp.ss'
 
 ## Installation
 
-    (require (planet zzkt/gibberish:1:0/xmpp))
+    (require (planet zzkt/xmpp:1:0/xmpp))
  
 ## Example Chat Client
 

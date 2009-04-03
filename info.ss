@@ -1,10 +1,10 @@
 #lang setup/infotab
 
 (define name
-  "gibberish")
+  "xmpp")
   
 (define blurb 
-  '("A client library for the XMPP or Jabber protocol."))
+  '("A library for the XMPP or Jabber protocol."))
 
 (define categories 
   '(xml net))
@@ -24,6 +24,5 @@
 (define release-notes 
   '(""))
 
-;(define scribblings 
-;  '(("gibberish.scrbl" ())))
-
+(define scribblings 
+  '(("xmpp.scrbl" ())))
