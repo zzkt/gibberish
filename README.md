@@ -11,8 +11,7 @@ currently documented in the file `xmpp.ss`
 
 ## Installation
 
-    (require (planet zzkt/xmpp:1:0/xmpp))
-
+    (require (planet zzkt/xmpp:1:1/xmpp))
 
 ## Session
 
@@ -76,5 +75,3 @@ see http://xmpp.org/extensions/
 * XEP-0199: XMPP Ping
 * XEP-0224: Attention
 * XEP-0077: In-Band Registration
-
-    
