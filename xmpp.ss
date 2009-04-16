@@ -28,8 +28,8 @@
 ;;;  Still a long way from implementing even a minimal subset of XMPP
 ;;; 
 ;;;  features implemented
-;;;   - plaintext sessions on port 5222
-;;;   - "old sytle" ssl sessions on port 5223
+;;;   - plaintext sessions on port 5222 
+;;;   - "old sytle" ssl sessions on port 5223 (default)
 ;;;   - authenticate using an existing account
 ;;;   - send messages (rfc 3921 sec.4)
 ;;;   - send presence (rfc 3921 sec.5)
@@ -54,11 +54,15 @@
 ;;;
 ;;;  bugs and/or improvements
 ;;;   - PLaneT installable
+;;;   - 'send' using call/cc vs 'parameter' i/o ports
+;;;   - coroutines for sasl negotiation
 ;;;   - read-async & repsonse-handler
 ;;;   - ssax:xml->sxml or lazy:xml->sxml
 ;;;   - default handlers
+;;;   - syntax for defining sxpath based handlers
+;;;   - improve parsing
 ;;;   - chatbot exmples
-;;;
+;;;   
 
 (module xmpp scheme
   
@@ -68,13 +72,14 @@
            ;with-xmpp-session
            )
   
-  (require (planet lizorkin/sxml:2:1/sxml))
-  (require (planet lizorkin/ssax:2:0/ssax))
-  (require mzlib/os)
-  (require mzlib/defmacro)
-  (require scheme/tcp)
-  (require openssl)
-  (require srfi/13)
+  (require (planet lizorkin/sxml:2:1/sxml))   ;; encoding xml
+  (require (planet lizorkin/ssax:2:0/ssax))   ;; decoding xml
+  (require mzlib/os)                          ;; hostname
+  (require mzlib/defmacro)                    ;; with-xmpp-session macro
+  (require scheme/tcp)                        ;; networking
+  (require openssl)                           ;; ssl/tls
+  (require srfi/13)                           ;; jid decoding
+  (require net/base64)                        ;; sasl
   
   ;;;;;;;;;;; ; ;;;;  ;   ;;; ;    ; ;;     ;
   ;;
@@ -117,7 +122,7 @@
   
   ;; intialization
   (define (xmpp-stream host) 
-    (string-append "<?xml version='1.0'?><stream:stream xmlns:stream='http://etherx.jabber.org/streams' to='" host "' xmlns='jabber:client'>"))
+    (string-append "<?xml version='1.0'?><stream:stream xmlns:stream='http://etherx.jabber.org/streams' to='" host "' xmlns='jabber:client' >")) ;; version='1.0' is a MUST for SASL on 5222 but NOT for ssl on 5223
   
   ;; authentication
   (define (xmpp-auth username password resource)
@@ -131,14 +136,12 @@
     (ssxml `(iq (@ (to ,host) (type "set") (id "session")) 
                 (session (@ (xmlns "urn:ietf:params:xml:ns:xmpp-session")))))) 
   
-  (define (starttls) "<starttls xmlns='urn:ietf:params:xml:ns:xmpp-tls'/>")
-  
   ;; messages
   (define (message to body)
     (ssxml `(message (@ (to ,to)) (body ,body))))
   
   ;; presence
-  (define (presence #:from (from "") 
+  (define (presence #:from (from "")
                     #:to (to "") 
                     #:type (type "") 
                     #:show (show "") 
@@ -148,6 +151,13 @@
           ((string=? type "") "<presence/>")
           (else (ssxml `(presence (@ (type ,type)))))))
   
+  ;; queries
+  (define (iq body 
+              #:from (from "")
+              #:to (to "") 
+              #:type (type "") 
+              #:id (id ""))
+    (ssxml `(iq (@ (to ,to) (type ,type) ,body))))
   
   ;; curried stanza disection (sxml stanza -> string)
   (define ((sxpath-element xpath) stanza) 
@@ -174,6 +184,18 @@
   (define presence-from (sxpath-element "presence/@from/text()"))
   (define presence-status (sxpath-element "presence/status/text()"))
   
+  ;;;; ;; ;  ;;;  ;
+  ;;
+  ;; tls & sasl
+  ;;  - http://xmpp.org/rfcs/rfc3920.html#tls
+  ;;  - http://xmpp.org/rfcs/rfc3920.html#sasl
+  ;;
+  ;;;; ;;
+
+  (define session->tls? #f) ;; changes state when a tls proceed is recived
+  
+  ;; moved to xmpp-sasl until it 'works'
+
   
   ;;;;;;;;; ; ;; ; ; ;;  ;;    ;  ;
   ;;
@@ -188,6 +210,9 @@
   
   (define (set-xmpp-handler type fcn)
     (dict-set! xmpp-handlers type fcn))
+  
+  (define (remove-xmpp-handler type fcn)
+    (dict-remove! xmpp-handlers type fcn))
   
   (define (run-xmpp-handler type sz)
     (let ((fcn (dict-ref xmpp-handlers type #f))) 
@@ -210,7 +235,7 @@
            (run-xmpp-handler 'iq sz))
           ((equal? 'presence (caadr sz)) 
            (run-xmpp-handler 'presence sz))
-          (else (run-xmpp-handler 'unknown sz))))))
+          (else (run-xmpp-handler 'other sz))))))
   
   ;; example handlers to print stanzas or their contents
   (define (print-message sz)
@@ -231,7 +256,10 @@
       (cond ((string-ci=? test "<me") str)
             ((string-ci=? test "<iq") str)
             ((string-ci=? test "<pr") str)
-            (else "<null/>"))))
+            ((string-ci=? test "<ur") str)
+            (else 
+             (display (format "~%recieved: ~a ~%parsed as <null/>~%~%" str))
+             "<null/>"))))
   
   
   ;; response handler
@@ -258,13 +286,20 @@
   (define (jid-resource-0 jid)
     (let ((v (string-index jid #\/)))
       (when v (string-take-right jid (- (string-length jid) v 1)))))    
-
+  
   
   ;;;;  ;; ; ; ;; ;;   ;;;; ;
   ;;
   ;; interfaces
   ;;
   ;;;;; ;; ;;;;   ;   ;;  ;
+  
+  (define xmpp-in-port (make-parameter (current-input-port)))
+  (define xmpp-out-port (make-parameter (current-output-port)))
+  
+  (define (send str)
+    (printf "sending iO: ~a ~%~%" str)
+    (fprintf (xmpp-out-port) "~A~%" str) (flush-output (xmpp-out-port)))
   
   (defmacro with-xmpp-session (jid pass . body)
     `(let ((host (jid-host ,jid))
@@ -273,19 +308,20 @@
        (let-values (((in out)
                      (ssl-connect host ssl-port 'tls)))
          ;;(tcp-connect host port)))
-         (define (send str) (fprintf out "~A~%" str) (flush-output out))
-         (file-stream-buffer-mode out 'line)
-         (xmpp-response-handler in) 
-         (send (xmpp-stream host))
-         (send (xmpp-session host))
-         ;(send starttls)
-         (send (xmpp-auth user ,pass resource))
-         (send (presence))
-         (send (presence #:status "Available"))
-         ,@body
-         (close-output-port out)
-         (close-input-port in))))
-
+         (parameterize ((xmpp-in-port in)
+                        (xmpp-out-port out))
+           (file-stream-buffer-mode out 'line)
+           (xmpp-response-handler in) 
+           (send (xmpp-stream host))
+           (send (xmpp-session host))           
+           ;(starttls in out)
+           
+           (send (xmpp-auth user ,pass resource))
+           (send (presence))
+           (send (presence #:status "Available"))
+           ,@body
+           (close-output-port out)
+           (close-input-port in)))))
   
   ) ;; end module
 

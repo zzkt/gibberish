@@ -12,7 +12,35 @@ currently documented in the file 'xmpp.ss'
 ## Installation
 
     (require (planet zzkt/xmpp:1:0/xmpp))
- 
+
+
+## Session
+
+It is necessary to establish a session with a Jabber server before
+sending any messages or presence updates. This can be done manually,
+or with the help of with-xmpp-session.
+
+
+## Sending
+
+Once a session is established, the 'send' function can be used to send
+messages, presnece updates or queries.
+
+    (with-xmpp-session jid pass 
+      (send (message user@host "some random message")))    		       
+
+Where 'jid' is the senders jid and 'pass' is the password
+
+
+## Response Handlers 
+
+A handler can be registered to repsond to 'message 'presence 'iq or
+'other stanzas. Note that an 'iq handler will revive any error
+messages from the server
+
+    (set-xmpp-handler 'message print-message)
+   
+
 ## Example Chat Client
 
     (require xmpp)
