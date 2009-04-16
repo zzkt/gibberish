@@ -9,23 +9,38 @@ A module for using the Jabber/XMPP protocol.
 
 @section{Protocol Support}
 
-It should eventually implement XMPP-Core and XMPP-IM to conform with
-RFCs 3920 and 3921. Progress toward supporting the full protocol is
-currently documented in the file 'xmpp.ss'
+A minimal subset of the XMPP protocols are supported, but not much
+beyond sending and receiving messages and presence updates. This
+module should eventually implement XMPP-Core and XMPP-IM to conform
+with RFCs 3920 and 3921. Currently, the default connection uses 'old
+style' SSL, which is deprecated and may cause problems with some
+servers. Progress toward supporting the full protocol is documented in
+the file 'xmpp.ss'
 
-
-@section{Installation}
-
-@schemeblock[(require (planet zzkt/xmpp:1:0/xmpp))]
 
 @section{Session}
 
-@schemeblock[
-(with-xmpp-session jid pass body)
-]
+It is necessary to establish a session with a Jabber server before
+sending any messages or presence updates. This can be done manually,
+or with the help of with-xmpp-session.
 
-@section{Mesaging}
+@defform[(with-xmpp-seesion [jid jid?] [password string?] body)]{
+  
+   Establishes an XMPP session using the id @scheme[jid] and password
+   @scheme[pass] and evaluates the forms in @scheme[body] in the
+   session's scope.}
+                    
+                 
+@section{Sending}
 
+Once a session is established, the 'send' function can be used to send
+messages, presence updates or queries. 
+
+@section{Messages}
+
+To send a message containing @scheme[text] to a user with the
+@scheme[jid] of @scheme[to]. 
+                                                               
 @schemeblock[
 (with-xmpp-session jid pass
   (send (message to text)))
@@ -33,12 +48,15 @@ currently documented in the file 'xmpp.ss'
 
 @section{Presence}
 
-@schemeblock[
+@schemeblock[					
 (with-xmpp-session jid pass
   (send (presence)))
 ]
-		   
-@section{Registration}
+
+@schemeblock[
+(with-xmpp-session jid pass
+  (send (presence #:status "Available")))
+]
 
 @section{Response Handling}
 

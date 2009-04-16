@@ -7,7 +7,7 @@ A basic module for IM using the Jabber/XMPP protocol with PLT Scheme.
 
 Should eventually implement XMPP-Core and XMPP-IM to conform with RFCs
 3920 and 3921. Progress toward supporting the full protocol is
-currently documented in the file 'xmpp.ss'
+currently documented in the file `xmpp.ss`
 
 ## Installation
 
@@ -18,24 +18,24 @@ currently documented in the file 'xmpp.ss'
 
 It is necessary to establish a session with a Jabber server before
 sending any messages or presence updates. This can be done manually,
-or with the help of with-xmpp-session.
+or with the help of `with-xmpp-session`.
 
 
 ## Sending
 
-Once a session is established, the 'send' function can be used to send
-messages, presnece updates or queries.
+Once a session is established, the `send` function can be used to send
+messages, presence updates or queries.
 
     (with-xmpp-session jid pass 
-      (send (message user@host "some random message")))    		       
+      (send (message "user@host" "some random message")))    		       
 
-Where 'jid' is the senders jid and 'pass' is the password
+Where `jid` is the senders jid and `pass` is the password
 
 
 ## Response Handlers 
 
-A handler can be registered to repsond to 'message 'presence 'iq or
-'other stanzas. Note that an 'iq handler will revive any error
+A handler can be registered to respond to `'message` `'presence` `'iq` or
+`'other` stanzas. Note that an `'iq` handler will receive any error
 messages from the server
 
     (set-xmpp-handler 'message print-message)
@@ -61,7 +61,7 @@ messages from the server
                                (loop))))))
 
 
-## possiby interesting extensions to implement. 
+## possibly interesting extensions to implement. 
 
 see http://xmpp.org/extensions/
 
