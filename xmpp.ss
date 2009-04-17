@@ -67,15 +67,15 @@
 (module xmpp scheme
   
   (provide (all-defined-out)
-           ;open-connection
-           ;open-ssl-connection
-           ;with-xmpp-session
+           ;; with-xmpp-session
+           ;; xmpp-stream xmpp-session xmpp-auth
+           ;; send message presence iq
+           ;; jid-user jid-host jid-resource
            )
   
   (require (planet lizorkin/sxml:2:1/sxml))   ;; encoding xml
   (require (planet lizorkin/ssax:2:0/ssax))   ;; decoding xml
   (require mzlib/os)                          ;; hostname
-  (require mzlib/defmacro)                    ;; with-xmpp-session macro
   (require scheme/tcp)                        ;; networking
   (require openssl)                           ;; ssl/tls
   (require srfi/13)                           ;; jid decoding
@@ -191,11 +191,11 @@
   ;;  - http://xmpp.org/rfcs/rfc3920.html#sasl
   ;;
   ;;;; ;;
-
+  
   (define session->tls? #f) ;; changes state when a tls proceed is recived
   
   ;; moved to xmpp-sasl until it 'works'
-
+  
   
   ;;;;;;;;; ; ;; ; ; ;;  ;;    ;  ;
   ;;
@@ -300,28 +300,29 @@
   (define (send str)
     (printf "sending iO: ~a ~%~%" str)
     (fprintf (xmpp-out-port) "~A~%" str) (flush-output (xmpp-out-port)))
-  
-  (defmacro with-xmpp-session (jid pass . body)
-    `(let ((host (jid-host ,jid))
-           (user (jid-user ,jid))
-           (resource (jid-resource ,jid)))
-       (let-values (((in out)
-                     (ssl-connect host ssl-port 'tls)))
-         ;;(tcp-connect host port)))
-         (parameterize ((xmpp-in-port in)
-                        (xmpp-out-port out))
-           (file-stream-buffer-mode out 'line)
-           (xmpp-response-handler in) 
-           (send (xmpp-stream host))
-           (send (xmpp-session host))           
-           ;(starttls in out)
-           
-           (send (xmpp-auth user ,pass resource))
-           (send (presence))
-           (send (presence #:status "Available"))
-           ,@body
-           (close-output-port out)
-           (close-input-port in)))))
+    
+  (define-syntax with-xmpp-session
+    (syntax-rules ()
+      ((_ jid pass . body)
+       (let ((host (jid-host jid))
+             (user (jid-user jid))
+             (resource (jid-resource jid)))
+         (let-values (((in out)
+                       (ssl-connect host ssl-port 'tls)))
+           ;;(tcp-connect host port)))
+           (parameterize ((xmpp-in-port in)
+                          (xmpp-out-port out))
+             (file-stream-buffer-mode out 'line)
+             (xmpp-response-handler in) 
+             (send (xmpp-stream host))
+             (send (xmpp-session host))           
+             ;(starttls in out)
+             
+             (send (xmpp-auth user pass resource))
+             (send (presence))
+             (send (presence #:status "Available"))
+             body
+             (close-output-port out)
+             (close-input-port in)))))))
   
   ) ;; end module
-
