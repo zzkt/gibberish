@@ -65,21 +65,15 @@
 ;;;   
 
 (module xmpp scheme
-  
-  (provide (all-defined-out)
-           ;; with-xmpp-session
-           ;; xmpp-stream xmpp-session xmpp-auth
-           ;; send message presence iq
-           ;; jid-user jid-host jid-resource
-           )
-  
+
   (require (planet lizorkin/sxml:2:1/sxml))   ;; encoding xml
   (require (planet lizorkin/ssax:2:0/ssax))   ;; decoding xml
   (require mzlib/os)                          ;; hostname
   (require scheme/tcp)                        ;; networking
   (require openssl)                           ;; ssl/tls
   (require srfi/13)                           ;; jid decoding
-  (require net/base64)                        ;; sasl
+
+  (provide (all-defined-out))
   
   ;;;;;;;;;;; ; ;;;;  ;   ;;; ;    ; ;;     ;
   ;;
@@ -183,6 +177,15 @@
   (define presence-show (sxpath-element "presence/show/text()"))
   (define presence-from (sxpath-element "presence/@from/text()"))
   (define presence-status (sxpath-element "presence/status/text()"))
+
+
+  ;;;;;;;;;; ; ;     ;  ;;  ;
+  ;;
+  ;; rosters
+  ;;
+  ;;;;;; ; ;;  ;
+
+
   
   ;;;; ;; ;  ;;;  ;
   ;;
@@ -303,13 +306,13 @@
     
   (define-syntax with-xmpp-session
     (syntax-rules ()
-      ((_ jid pass . body)
+      ((_ jid pass form . forms)
        (let ((host (jid-host jid))
              (user (jid-user jid))
              (resource (jid-resource jid)))
          (let-values (((in out)
                        (ssl-connect host ssl-port 'tls)))
-           ;;(tcp-connect host port)))
+		     ;;(tcp-connect host port)))
            (parameterize ((xmpp-in-port in)
                           (xmpp-out-port out))
              (file-stream-buffer-mode out 'line)
@@ -317,11 +320,10 @@
              (send (xmpp-stream host))
              (send (xmpp-session host))           
              ;(starttls in out)
-             
-             (send (xmpp-auth user pass resource))
+	     (send (xmpp-auth user pass resource))
              (send (presence))
              (send (presence #:status "Available"))
-             body
+             (begin form . forms)
              (close-output-port out)
              (close-input-port in)))))))
   

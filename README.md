@@ -11,7 +11,7 @@ currently documented in the file `xmpp.ss`
 
 ## Installation
 
-    (require (planet zzkt/xmpp:1:1/xmpp))
+    (require (planet zzkt/xmpp))
 
 ## Session
 
@@ -28,8 +28,10 @@ messages, presence updates or queries.
     (with-xmpp-session jid pass 
       (send (message "user@host" "some random message")))    		       
 
-Where `jid` is the senders jid and `pass` is the password
-
+Where `jid` is the senders jid and `pass` is the password. A presence
+update can be sent as `(send (presence #:status "garden path"))` and
+queries are similar `(send (iq #:type get))`
+   
 
 ## Response Handlers 
 
