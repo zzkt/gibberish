@@ -7,6 +7,15 @@ A module for using the Jabber/XMPP protocol.
 
 @table-of-contents[]
 
+@section{Require}
+
+@scheme[(require (planet zzkt/xmpp))]
+
+If you are using @scheme[send] provided from @scheme[scheme/class] you
+should use a prefix to avoid a name clash with @scheme[send].
+
+@scheme[(require (prefix-in xmpp: (planet zzkt/xmpp)))]
+
 @section{Protocol Support}
 
 A minimal subset of the XMPP protocols are supported, but not much
@@ -24,7 +33,7 @@ It is necessary to establish a session with a Jabber server before
 sending any messages or presence updates. This can be done manually,
 or with the help of with-xmpp-session.
 
-@defform[(with-xmpp-seesion [jid jid?] [password string?] body)]{
+@defform[(with-xmpp-session [jid jid?] [password string?] body)]{
   
    Establishes an XMPP session using the id @scheme[jid] and password
    @scheme[pass] and evaluates the forms in @scheme[body] in the
@@ -65,6 +74,18 @@ To send a message containing @scheme[text] to a user with the
      (set-xmpp-handler 'message print-message))
 ]
  
+@section{Rosters}
+
+@schemeblock[
+(with-xmpp-session jid pass 
+     (send (request-roster jid)))
+]
+
+@schemeblock[
+(with-xmpp-session jid1 pass 
+     (send (add-to-roster jid1 jid2 name group)))
+]
+
 @section{Example Chat Client}
 
 @schemeblock[
